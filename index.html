@@ -3,39 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grocery List App</title>
+    <title>Grocery Buddy</title>
     <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --background-color: #F7FFF7;
+            --text-color: #2C3E50;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        #add-item-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        input {
+            flex-grow: 1;
+            background-color: white;
+        }
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45b7aa;
         }
         #grocery-list {
             list-style-type: none;
             padding: 0;
         }
         #grocery-list li {
+            background-color: white;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        button {
-            cursor: pointer;
+        #grocery-list li button {
+            background-color: var(--primary-color);
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+        #email-list {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            font-size: 1.1rem;
+        }
+        .made-with-love {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .made-with-love a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            #add-item-form {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Grocery List App</h1>
+    <h1>🛒 Grocery Buddy</h1>
     <form id="add-item-form">
         <input type="text" id="item-input" placeholder="Add new item" required>
-        <input type="number" id="recurring-days" placeholder="Recurring days (optional)">
+        <input type="number" id="recurring-days" placeholder="Recurring days">
         <button type="submit">Add Item</button>
     </form>
     <ul id="grocery-list"></ul>
-    <button id="email-list">Email List</button>
+    <button id="email-list">📧 Email List</button>
+
+    <div class="made-with-love">
+        Made with ❤️ by <a href="https://jvboid.dev" target="_blank">Jacob</a>
+    </div>
 
     <script>
         // Initialize groceryList from localStorage or empty array
