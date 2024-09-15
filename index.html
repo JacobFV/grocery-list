@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery List App</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #grocery-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        #grocery-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grocery List App</h1>
+    <form id="add-item-form">
+        <input type="text" id="item-input" placeholder="Add new item" required>
+        <input type="number" id="recurring-days" placeholder="Recurring days (optional)">
+        <button type="submit">Add Item</button>
+    </form>
+    <ul id="grocery-list"></ul>
+    <button id="email-list">Email List</button>
+
+    <script>
+        // Initialize groceryList from localStorage or empty array
+        let groceryList = JSON.parse(localStorage.getItem('groceryList')) || [];
+
+        const itemInput = document.getElementById('item-input');
+        const recurringDaysInput = document.getElementById('recurring-days');
+        const addItemForm = document.getElementById('add-item-form');
+        const groceryListElement = document.getElementById('grocery-list');
+        const emailListButton = document.getElementById('email-list');
+
+        function saveToLocalStorage() {
+            localStorage.setItem('groceryList', JSON.stringify(groceryList));
+        }
+
+        function renderList() {
+            groceryListElement.innerHTML = '';
+            groceryList.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    ${item.name}
+                    ${item.recurringDays ? `(Recurring: ${item.recurringDays} days)` : ''}
+                    <button onclick="removeItem(${index})">Remove</button>
+                `;
+                groceryListElement.appendChild(li);
+            });
+        }
+
+        function addItem(name, recurringDays) {
+            groceryList.push({ name, recurringDays });
+            saveToLocalStorage();
+            renderList();
+        }
+
+        function removeItem(index) {
+            groceryList.splice(index, 1);
+            saveToLocalStorage();
+            renderList();
+        }
+
+        addItemForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = itemInput.value.trim();
+            const recurringDays = parseInt(recurringDaysInput.value) || null;
+            if (name) {
+                addItem(name, recurringDays);
+                itemInput.value = '';
+                recurringDaysInput.value = '';
+            }
+        });
+
+        emailListButton.addEventListener('click', () => {
+            const emailBody = groceryList.map(item => `${item.name}${item.recurringDays ? ` (Recurring: ${item.recurringDays} days)` : ''}`).join('\n');
+            const mailtoLink = `mailto:?subject=My Grocery List&body=${encodeURIComponent(emailBody)}`;
+            window.location.href = mailtoLink;
+        });
+
+        // Initialize the list
+        renderList();
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(error => {
+                    console.error('Service Worker registration failed:', error);
+                });
+        }
+
+        // Notification permission request
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        console.log('Notification permission granted');
+                    }
+                });
+            }
+        }
+
+        requestNotificationPermission();
+
+        // Function to schedule notifications for recurring items
+        function scheduleNotifications() {
+            groceryList.forEach(item => {
+                if (item.recurringDays) {
+                    const notificationTime = new Date().getTime() + item.recurringDays * 24 * 60 * 60 * 1000;
+                    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                        navigator.serviceWorker.ready.then(registration => {
+                            registration.sync.register('notify-' + item.name);
+                        });
+                    } else {
+                        // Fallback for browsers that don't support Background Sync
+                        setTimeout(() => {
+                            new Notification('Grocery Reminder', {
+                                body: `Time to buy ${item.name}!`,
+                            });
+                        }, notificationTime - new Date().getTime());
+                    }
+                }
+            });
+        }
+
+        // Call scheduleNotifications whenever the list changes
+        addItemForm.addEventListener('submit', scheduleNotifications);
+    </script>
+</body>
+</html>
